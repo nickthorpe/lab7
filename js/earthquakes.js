@@ -23,6 +23,7 @@ gov.usgs.quakes;
 
 //reference to our google map
 gov.usgs.quakesMap;
+    
 
 //AJAX Error event handler
 //just alerts the user of the error
@@ -41,7 +42,8 @@ $(function(){
 //queries the server for the list of recent quakes
 //and plots them on a Google map
 function getQuakes() {
-	$.getJSON(gov.usgs.quakesUrl, function(quakes){
+	$('.message').addClass('loading');
+    $.getJSON(gov.usgs.quakesUrl, function(quakes){
     //quakes is an array of objects, each of which represents info about a quake
     //see data returned from:
     //https://soda.demo.socrata.com/resource/earthquakes.json?$$app_token=Hwu90cjqyFghuAWQgannew7Oi
@@ -49,15 +51,19 @@ function getQuakes() {
     //set our global variable to the current set of quakes
     //so we can reference it later in another event
     gov.usgs.quakes = quakes;
-    $( ".message" ).html('Displaying ' + quakes.length + ' earthquakes');
+    //update paragraph message to let user know how many earthquakes returned
+    $( ".message" ).html('Displaying ' + quakes.length + ' earthquakes').removeClass('loading');
 
+    //creating the google map
 	gov.usgs.quakesMap = new google.maps.Map($('.map-container')[0], {
 	    center: new google.maps.LatLng(0,0),        //centered on 0/0
 	    zoom: 2,                                    //zoom level 2
 	    mapTypeId: google.maps.MapTypeId.TERRAIN,   //terrain map
 	    streetViewControl: false                    //no street view
 	});
+    //assigning variable to our map
     var map = gov.usgs.quakesMap;
+    //calling function to call markers
     addQuakeMarkers(quakes, map);                
 }); //handle returned data function
 
@@ -79,6 +85,7 @@ function addQuakeMarkers(quakes, map) {
 
         //latitude of current quake = quake.location.latitude 
         //longitutde of current quake = quake.location.longitude
+        //if statement to test for  lat/lng provided on earthquake data
         if (quake.location) {
         	//assuming that the variable 'quake' is set to 
 			//the current quake object within the quakes array...
@@ -87,7 +94,12 @@ function addQuakeMarkers(quakes, map) {
 			    position: new google.maps.LatLng(quake.location.latitude, quake.location.longitude)
 			});
         };
+        //added click handler to open/close info windows 
         google.maps.event.addListener(quake.mapMarker, 'click', function(){
+            //closes previous info window
+            if (gov.usgs.iw) {
+                gov.usgs.iw.close(map, this);
+            }
             //code that runs when user clicks on a marker
             //create an info window with the quake info
             gov.usgs.iw = new google.maps.InfoWindow({
