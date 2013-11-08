@@ -57,6 +57,7 @@ function getQuakes() {
 	    mapTypeId: google.maps.MapTypeId.TERRAIN,   //terrain map
 	    streetViewControl: false                    //no street view
 	});
+    var map = gov.usgs.quakesMap;
     addQuakeMarkers(quakes, map);                
 }); //handle returned data function
 
@@ -82,10 +83,22 @@ function addQuakeMarkers(quakes, map) {
         	//assuming that the variable 'quake' is set to 
 			//the current quake object within the quakes array...
 			quake.mapMarker = new google.maps.Marker({
-			    map: map,
+			    'map': map,
 			    position: new google.maps.LatLng(quake.location.latitude, quake.location.longitude)
 			});
         };
+        google.maps.event.addListener(quake.mapMarker, 'click', function(){
+            //code that runs when user clicks on a marker
+            //create an info window with the quake info
+            gov.usgs.iw = new google.maps.InfoWindow({
+            content: new Date(quake.datetime).toLocaleString() + 
+            ': magnitude ' + quake.magnitude + ' at depth of ' + 
+            quake.depth + ' meters'
+            });
+
+            //open the info window
+            gov.usgs.iw.open(map, this);
+        }); //click handler for marker
     }
 
     
