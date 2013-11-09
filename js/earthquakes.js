@@ -94,24 +94,33 @@ function addQuakeMarkers(quakes, map) {
 			    position: new google.maps.LatLng(quake.location.latitude, quake.location.longitude)
 			});
         };
-        //added click handler to open/close info windows 
-        google.maps.event.addListener(quake.mapMarker, 'click', function(){
-            //closes previous info window
-            if (gov.usgs.iw) {
-                gov.usgs.iw.close(map, this);
-            }
-            //code that runs when user clicks on a marker
-            //create an info window with the quake info
-            gov.usgs.iw = new google.maps.InfoWindow({
-            content: new Date(quake.datetime).toLocaleString() + 
+        //create an info window with the quake info (date, magnitude, depth)
+        infoWindow = new google.maps.InfoWindow({
+			content: new Date(quake.datetime).toLocaleString() + 
             ': magnitude ' + quake.magnitude + ' at depth of ' + 
             quake.depth + ' meters'
-            });
-
-            //open the info window
-            gov.usgs.iw.open(map, this);
-        }); //click handler for marker
+		});
+        //call closure so we can refer to values of map, marker and infowindow
+        registerInfoWindow(map, quake.mapMarker, infoWindow);
     }
+
+    //This function adds a click event handler for the current Marker, and when the handler function 
+    //is called, it opens the current InfoWindow, passing a reference to the map and the current Marker. 
+    //The event handler function creates a closure so that we can refer to the values of the map, marker, 
+    //and infoWindow variables at the time this registerInfoWindow function was called. 
+    function registerInfoWindow(map, marker, infoWindow) {
+    	//added click handler to open/close info windows 
+    	google.maps.event.addListener(marker, 'click', function(){
+    		//closes previous info window if there is one
+    		 if (gov.usgs.iw) {
+                gov.usgs.iw.close(map, this);
+            }
+            //assign infowindow as a global variable
+    		gov.usgs.iw = infoWindow;
+    		//open new info window
+			infoWindow.open(map, marker);
+		});                
+	} //registerInfoWindow()
 
     
 } //addQuakeMarkers()
